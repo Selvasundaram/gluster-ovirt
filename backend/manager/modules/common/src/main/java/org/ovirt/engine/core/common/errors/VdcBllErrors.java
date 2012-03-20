@@ -359,7 +359,10 @@ public enum VdcBllErrors {
     NO_PARAMETERS_FOR_TASK(5026),
     HOST_ALREADY_EXISTS(5027),
     // error to indicate backend does not recognize the session
-    SESSION_ERROR(9999), ;
+    SESSION_ERROR(9999),
+    //Gluster errors from engine
+    NO_ONLINE_SERVER_FOUND(7000),
+    ;
 
     private int intValue;
     private static java.util.HashMap<Integer, VdcBllErrors> mappings = new HashMap<Integer, VdcBllErrors>();

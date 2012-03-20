@@ -156,6 +156,7 @@ public class VdsServerWrapper implements IVdsServer {
         }
     }
 
+    @Override
     public VDSInfoReturnForXmlRpc getCapabilities() {
         try {
             Map<String, Object> xmlRpcReturnValue = vdsServer.getVdsCapabilities();
@@ -948,4 +949,26 @@ public class VdsServerWrapper implements IVdsServer {
         }
     }
 
+
+    @Override
+    public OneUuidReturnForXmlRpc glusterVolumeCreate(Map<String, Object> volumeData) {
+        try {
+            Map<String, Object> xmlRpcReturnValue = vdsServer.glusterVolumeCreate(volumeData);
+            OneUuidReturnForXmlRpc wrapper = new OneUuidReturnForXmlRpc(xmlRpcReturnValue);
+            return wrapper;
+        } catch (UndeclaredThrowableException ute) {
+            throw new XmlRpcRunTimeException(ute);
+        }
+    }
+
+    @Override
+    public StatusOnlyReturnForXmlRpc glusterVolumeSet(String volumeName, String key, String value) {
+        try {
+            Map<String, Object> xmlRpcReturnValue = vdsServer.glusterVolumeSet(volumeName, key, value);
+            StatusOnlyReturnForXmlRpc wrapper = new StatusOnlyReturnForXmlRpc(xmlRpcReturnValue);
+            return wrapper;
+        } catch (UndeclaredThrowableException ute) {
+            throw new XmlRpcRunTimeException(ute);
+        }
+    }
 }

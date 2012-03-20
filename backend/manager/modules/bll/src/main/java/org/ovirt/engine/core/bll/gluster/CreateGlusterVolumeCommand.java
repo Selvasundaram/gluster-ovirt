@@ -1,13 +1,11 @@
-/**
- *
- */
 package org.ovirt.engine.core.bll.gluster;
 
 import org.ovirt.engine.core.bll.Backend;
 import org.ovirt.engine.core.common.AuditLogType;
-import org.ovirt.engine.core.common.businessentities.gluster.GlusterVolumeEntity;
+import org.ovirt.engine.core.common.action.gluster.CreateGlusterVolumeParameters;
 import org.ovirt.engine.core.common.businessentities.gluster.AccessProtocol;
-import org.ovirt.engine.core.common.glusteractions.CreateGlusterVolumeParameters;
+import org.ovirt.engine.core.common.businessentities.gluster.GlusterVolumeEntity;
+import org.ovirt.engine.core.common.glustercommands.CreateGlusterVolumeVDSParameters;
 import org.ovirt.engine.core.common.interfaces.VDSBrokerFrontend;
 import org.ovirt.engine.core.common.vdscommands.VDSCommandType;
 import org.ovirt.engine.core.common.vdscommands.VDSReturnValue;
@@ -16,9 +14,7 @@ import org.ovirt.engine.core.dal.dbbroker.DbFacade;
 import org.ovirt.engine.core.utils.transaction.TransactionMethod;
 import org.ovirt.engine.core.utils.transaction.TransactionSupport;
 
-/**
- *
- */
+
 public class CreateGlusterVolumeCommand extends GlusterCommandBase<CreateGlusterVolumeParameters> {
 
     public CreateGlusterVolumeCommand(CreateGlusterVolumeParameters params) {
@@ -31,7 +27,12 @@ public class CreateGlusterVolumeCommand extends GlusterCommandBase<CreateGluster
         addCanDoActionMessage(VdcBllMessages.VAR__ACTION__CREATE);
         addCanDoActionMessage(VdcBllMessages.VAR__TYPE__GLUSTER_VOLUME);
 
-        return super.canDoAction();
+        GlusterVolumeEntity volume = getParameters().getVolume();
+        if (volume != null && volume.getName() != null && volume.getClusterId() != null
+                && volume.getVolumeType() != null) {
+            return super.canDoAction();
+        }
+        return false;
     }
 
     /*
@@ -56,7 +57,7 @@ public class CreateGlusterVolumeCommand extends GlusterCommandBase<CreateGluster
                         VDSReturnValue returnValue = vdsBroker.RunVdsCommand(
                                 VDSCommandType.CreateGlusterVolume,
                                 new CreateGlusterVolumeVDSParameters(
-                                        getOnlineHost().getId(), volume));
+                                        getOnlineServer().getId(), volume));
 
                         setSucceeded(returnValue.getSucceeded());
                         if (!getSucceeded()) {
@@ -64,10 +65,6 @@ public class CreateGlusterVolumeCommand extends GlusterCommandBase<CreateGluster
                         }
 
                         addVolumeToDb((GlusterVolumeEntity) returnValue.getReturnValue());
-
-                        // TODO: What is compensation all about? needs to be understood.
-                        // getCompensationContext().stateChanged();
-
                         return null;
                     }
                 });

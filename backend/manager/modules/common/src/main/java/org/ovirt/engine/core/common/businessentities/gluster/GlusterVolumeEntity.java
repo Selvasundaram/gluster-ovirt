@@ -293,18 +293,6 @@ public class GlusterVolumeEntity extends IVdcQueryable implements BusinessEntity
         return (nfsDisabled == null || nfsDisabled.equalsIgnoreCase(GlusterConstants.OFF));
     }
 
-    public void enableCifs() {
-        accessProtocols.add(AccessProtocol.CIFS);
-    }
-
-    public void disableCifs() {
-        accessProtocols.remove(AccessProtocol.CIFS);
-    }
-
-    public boolean isCifsEnabled() {
-        return accessProtocols.contains(AccessProtocol.CIFS);
-    }
-
     public List<String> getBrickDirectories() {
         List<String> brickDirectories = new ArrayList<String>();
         for (GlusterBrickEntity brick : getBricks()) {

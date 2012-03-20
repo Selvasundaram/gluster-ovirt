@@ -6,8 +6,8 @@ package org.ovirt.engine.core.common.businessentities.gluster;
  */
 public enum AccessProtocol {
     GLUSTER,
-    NFS,
-    CIFS;
+    NFS;
+    //CIFS;
 
     public int getValue() {
         return ordinal();

@@ -20,6 +20,9 @@ public enum VdcBllMessages {
     VAR__TYPE__VM_DISK,
     VAR__TYPE__BOOKMARK,
     VAR__TYPE__VM_TICKET,
+
+    VAR__TYPE__GLUSTER_VOLUME,
+
     VAR__ACTION__RUN,
     VAR__ACTION__REMOVE,
     VAR__ACTION__ADD,

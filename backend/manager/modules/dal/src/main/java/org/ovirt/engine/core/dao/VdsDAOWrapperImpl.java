@@ -165,5 +165,4 @@ public class VdsDAOWrapperImpl extends BaseDAOWrapperImpl implements VdsDAO {
         // TODO Auto-generated method stub
         return null;
     }
-    
 }
