@@ -1,27 +1,17 @@
 package org.ovirt.engine.core.bll.gluster;
 
-<<<<<<< HEAD
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
-import org.ovirt.engine.core.bll.VdsGroupCommandBase;
-=======
 import java.util.ArrayList;
 import java.util.List;
 
 import org.ovirt.engine.core.bll.VdsGroupCommandBase;
 import org.ovirt.engine.core.common.PermissionSubject;
->>>>>>> engine : Create gluster volume command
 import org.ovirt.engine.core.common.VdcObjectType;
 import org.ovirt.engine.core.common.action.VdsGroupParametersBase;
 import org.ovirt.engine.core.common.businessentities.VDS;
 import org.ovirt.engine.core.common.businessentities.VDSStatus;
-<<<<<<< HEAD
-=======
 import org.ovirt.engine.core.common.errors.VdcBLLException;
 import org.ovirt.engine.core.common.errors.VdcBllErrors;
->>>>>>> engine : Create gluster volume command
 import org.ovirt.engine.core.dal.VdcBllMessages;
 import org.ovirt.engine.core.dal.dbbroker.DbFacade;
 
