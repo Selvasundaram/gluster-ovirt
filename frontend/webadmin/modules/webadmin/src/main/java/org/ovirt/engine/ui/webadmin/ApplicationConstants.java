@@ -241,9 +241,6 @@ public interface ApplicationConstants extends CommonApplicationConstants {
     @DefaultStringValue("Events")
     String virtualMachineEventSubTabLabel();
 
-    @DefaultStringValue("Description")
-    String virtualMachineSnapshotCreatePopupDescriptionLabel();
-
     @DefaultStringValue("General")
     String hostGeneralSubTabLabel();
 
@@ -328,7 +325,7 @@ public interface ApplicationConstants extends CommonApplicationConstants {
     @DefaultStringValue("Current version")
     String hostInstallHostVersionLabel();
 
-    @DefaultStringValue("RHEV-H ISO Name")
+    @DefaultStringValue("ISO Name")
     String hostInstallIsoLabel();
 
     @DefaultStringValue("Override IP tables")

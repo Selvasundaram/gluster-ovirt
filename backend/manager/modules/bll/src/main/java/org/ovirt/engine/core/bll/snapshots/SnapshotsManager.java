@@ -135,20 +135,19 @@ public class SnapshotsManager {
      * @return A String containing the VM configuration.
      */
     protected String generateVmConfiguration(VM vm) {
-        ArrayList<DiskImage> allVmImages = new java.util.ArrayList<DiskImage>();
         if (vm.getInterfaces() == null || vm.getInterfaces().isEmpty()) {
             vm.setInterfaces(getVmNetworkInterfaceDao().getAllForVm(vm.getId()));
         }
-        for (DiskImage diskImage : getDiskImageDao().getAllForVm(vm.getId())) {
-            allVmImages.addAll(ImagesHandler.getAllImageSnapshots(diskImage.getId(), diskImage.getit_guid()));
-        }
+
         if (StringHelper.isNullOrEmpty(vm.getvmt_name())) {
             VmTemplate t = getVmTemplateDao().get(vm.getvmt_guid());
             vm.setvmt_name(t.getname());
         }
 
         RefObject<String> tempRefObject = new RefObject<String>("");
-        new OvfManager().ExportVm(tempRefObject, vm, allVmImages);
+        new OvfManager().ExportVm(tempRefObject,
+                vm,
+                new ArrayList<DiskImage>(getDiskImageDao().getAllForVm(vm.getId())));
         return tempRefObject.argvalue;
     }
 
@@ -165,6 +164,21 @@ public class SnapshotsManager {
     }
 
     /**
+     * Remove all illegal disks which were associated with the given snapshot. This is done in order to be able to
+     * switch correctly between snapshots where illegal images might be present.
+     *
+     * @param snapshotId
+     *            The ID of the snapshot for who to remove illegal images for.
+     */
+    public void removeAllIllegalDisks(Guid snapshotId) {
+        for (DiskImage diskImage : getDiskImageDao().getAllSnapshotsForVmSnapshot(snapshotId)) {
+            if (diskImage.getimageStatus() == ImageStatus.ILLEGAL) {
+                ImagesHandler.removeDiskImage(diskImage);
+            }
+        }
+    }
+
+    /**
      * Attempt to read the configuration that is stored in the snapshot, and restore the VM from it.<br>
      * The NICs and Disks will be restored from the configuration (if available).<br>
      * <br>
@@ -176,6 +190,7 @@ public class SnapshotsManager {
      */
     public void attempToRestoreVmConfigurationFromSnapshot(VM vm,
             Snapshot snapshot,
+            Guid activeSnapshotId,
             CompensationContext compensationContext) {
         if (snapshot.getVmConfiguration() == null || !updateVmFromConfiguration(vm, snapshot.getVmConfiguration())) {
             vm.setImages(new ArrayList<DiskImage>(getDiskImageDao().getAllSnapshotsForVmSnapshot(snapshot.getId())));
@@ -186,7 +201,7 @@ public class SnapshotsManager {
         getVmStaticDao().update(vm.getStaticData());
         getVmDynamicDao().update(vm.getDynamicData());
         synchronizeNics(vm.getId(), vm.getInterfaces(), compensationContext);
-        synchronizeDisksFromSnapshot(vm.getId(), snapshot.getId(), vm.getImages());
+        synchronizeDisksFromSnapshot(vm.getId(), snapshot.getId(), activeSnapshotId, vm.getImages());
     }
 
     /**
@@ -271,22 +286,18 @@ public class SnapshotsManager {
      *            The VM ID is needed to re-add disks.
      * @param snapshotId
      *            The snapshot ID is used to find only the VM disks at the time.
-     * @param imagesFromSnapshot
-     *            The images that existed in the snapshot.
+     * @param disksFromSnapshot
+     *            The disks that existed in the snapshot.
      */
-    protected void synchronizeDisksFromSnapshot(Guid vmId, Guid snapshotId, List<DiskImage> imagesFromSnapshot) {
-        List<DiskImage> disksFromSnapshot = new ArrayList<DiskImage>();
+    protected void synchronizeDisksFromSnapshot(Guid vmId,
+            Guid snapshotId,
+            Guid activeSnapshotId,
+            List<DiskImage> disksFromSnapshot) {
         List<Guid> diskIdsFromSnapshot = new ArrayList<Guid>();
-        for (DiskImage image : imagesFromSnapshot) {
-            if (snapshotId.equals(image.getvm_snapshot_id())) {
-                diskIdsFromSnapshot.add(image.getimage_group_id());
-                disksFromSnapshot.add(image);
-            }
-        }
 
         // Sync disks that exist or existed in the snapshot.
-        Guid activeSnapshotId = null;
         for (DiskImage diskImage : disksFromSnapshot) {
+            diskIdsFromSnapshot.add(diskImage.getimage_group_id());
             Disk disk = diskImage.getDisk();
             if (getDiskDao().exists(disk.getId())) {
                 getDiskDao().update(disk);
@@ -294,8 +305,6 @@ public class SnapshotsManager {
 
                 // If can't find the image, insert it as illegal so that it can't be used and make the device unplugged.
                 if (getDiskImageDao().getSnapshotById(diskImage.getId()) == null) {
-                    activeSnapshotId = (activeSnapshotId == null)
-                            ? getSnapshotDao().getId(vmId, SnapshotType.ACTIVE) : activeSnapshotId;
                     diskImage.setimageStatus(ImageStatus.ILLEGAL);
                     diskImage.setvm_snapshot_id(activeSnapshotId);
 
@@ -308,9 +317,9 @@ public class SnapshotsManager {
         }
 
         // Remove all disks that didn't exist in the snapshot.
-        for (VmDevice vmDevice : getVmDeviceDao().getVmDeviceByVmId(vmId)) {
-            if (VmDeviceType.DISK.getName().equals(vmDevice.getType())
-                    && !diskIdsFromSnapshot.contains(vmDevice.getDeviceId())) {
+        for (VmDevice vmDevice : getVmDeviceDao().getVmDeviceByVmIdTypeAndDevice(
+                vmId, VmDeviceType.DISK.getName(), VmDeviceType.DISK.getName())) {
+            if (!diskIdsFromSnapshot.contains(vmDevice.getDeviceId())) {
                 getDiskDao().remove(vmDevice.getDeviceId());
                 getVmDeviceDao().remove(vmDevice.getId());
             }

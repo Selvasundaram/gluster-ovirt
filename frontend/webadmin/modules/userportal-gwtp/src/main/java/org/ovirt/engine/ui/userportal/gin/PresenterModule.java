@@ -5,16 +5,21 @@ import org.ovirt.engine.ui.userportal.section.login.presenter.LoginPopupPresente
 import org.ovirt.engine.ui.userportal.section.login.presenter.LoginSectionPresenter;
 import org.ovirt.engine.ui.userportal.section.login.view.LoginPopupView;
 import org.ovirt.engine.ui.userportal.section.login.view.LoginSectionView;
+import org.ovirt.engine.ui.userportal.section.main.presenter.AboutPopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.HeaderPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.MainSectionPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.MainTabPanelPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.console.ConsolePopupPresenterWidget;
+import org.ovirt.engine.ui.userportal.section.main.presenter.popup.networkinterface.NetworkInterfacePopupPresenterWidget;
+import org.ovirt.engine.ui.userportal.section.main.presenter.popup.permissions.PermissionsPopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.template.TemplateNewPopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmChangeCDPopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmDesktopNewPopupPresenterWidget;
+import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmDiskPopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmMakeTemplatePopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmRunOncePopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmServerNewPopupPresenterWidget;
+import org.ovirt.engine.ui.userportal.section.main.presenter.popup.vm.VmSnapshotCreatePopupPresenterWidget;
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.MainTabBasicPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.MainTabExtendedPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.basic.MainTabBasicDetailsPresenterWidget;
@@ -41,16 +46,21 @@ import org.ovirt.engine.ui.userportal.section.main.presenter.tab.extended.vm.Sub
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.extended.vm.SubTabExtendedVmPermissionPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.extended.vm.SubTabExtendedVmSnapshotPresenter;
 import org.ovirt.engine.ui.userportal.section.main.presenter.tab.extended.vm.SubTabExtendedVmVirtualDiskPresenter;
+import org.ovirt.engine.ui.userportal.section.main.view.AboutPopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.HeaderView;
 import org.ovirt.engine.ui.userportal.section.main.view.MainSectionView;
 import org.ovirt.engine.ui.userportal.section.main.view.MainTabPanelView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.console.ConsolePopupView;
+import org.ovirt.engine.ui.userportal.section.main.view.popup.networkinterface.NetworkInterfacePopupView;
+import org.ovirt.engine.ui.userportal.section.main.view.popup.permissions.PermissionsPopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.template.TemplateNewPopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmChangeCDPopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmDesktopNewPopupView;
+import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmDiskPopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmMakeTemplatePopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmRunOncePopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmServerNewPopupView;
+import org.ovirt.engine.ui.userportal.section.main.view.popup.vm.VmSnapshotCreatePopupView;
 import org.ovirt.engine.ui.userportal.section.main.view.tab.MainTabBasicView;
 import org.ovirt.engine.ui.userportal.section.main.view.tab.MainTabExtendedView;
 import org.ovirt.engine.ui.userportal.section.main.view.tab.basic.MainTabBasicDetailsView;
@@ -105,6 +115,9 @@ public class PresenterModule extends BasePresenterModule {
         bindSingletonPresenterWidget(HeaderPresenterWidget.class,
                 HeaderPresenterWidget.ViewDef.class,
                 HeaderView.class);
+        bindSingletonPresenterWidget(AboutPopupPresenterWidget.class,
+                AboutPopupPresenterWidget.ViewDef.class,
+                AboutPopupView.class);
 
         // Main section: main tabs
         bindPresenter(MainTabPanelPresenter.class,
@@ -225,6 +238,11 @@ public class PresenterModule extends BasePresenterModule {
 
         // Main section: popups
 
+        // Permissions
+        bindPresenterWidget(PermissionsPopupPresenterWidget.class,
+                PermissionsPopupPresenterWidget.ViewDef.class,
+                PermissionsPopupView.class);
+
         // Console popup
         bindPresenterWidget(ConsolePopupPresenterWidget.class,
                 ConsolePopupPresenterWidget.ViewDef.class,
@@ -246,11 +264,21 @@ public class PresenterModule extends BasePresenterModule {
         bindPresenterWidget(VmMakeTemplatePopupPresenterWidget.class,
                 VmMakeTemplatePopupPresenterWidget.ViewDef.class,
                 VmMakeTemplatePopupView.class);
+        bindPresenterWidget(VmDiskPopupPresenterWidget.class,
+                VmDiskPopupPresenterWidget.ViewDef.class,
+                VmDiskPopupView.class);
+        bindPresenterWidget(VmSnapshotCreatePopupPresenterWidget.class,
+                VmSnapshotCreatePopupPresenterWidget.ViewDef.class,
+                VmSnapshotCreatePopupView.class);
 
         // Template popups
         bindPresenterWidget(TemplateNewPopupPresenterWidget.class,
                 TemplateNewPopupPresenterWidget.ViewDef.class,
                 TemplateNewPopupView.class);
+
+        bindPresenterWidget(NetworkInterfacePopupPresenterWidget.class,
+                NetworkInterfacePopupPresenterWidget.ViewDef.class,
+                NetworkInterfacePopupView.class);
 
     }
 

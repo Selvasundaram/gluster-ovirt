@@ -15,4 +15,5 @@ public class VmDiskPopupPresenterWidget extends AbstractModelBoundPopupPresenter
     public VmDiskPopupPresenterWidget(EventBus eventBus, ViewDef view) {
         super(eventBus, view);
     }
+
 }

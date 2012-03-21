@@ -1,7 +1,5 @@
 package org.ovirt.engine.ui.uicommonweb.models.hosts;
 
-import java.util.ArrayList;
-
 import org.ovirt.engine.core.common.VdcActionUtils;
 import org.ovirt.engine.core.common.action.UpdateVdsActionParameters;
 import org.ovirt.engine.core.common.action.VdcActionParametersBase;
@@ -34,6 +32,8 @@ import org.ovirt.engine.ui.uicompat.FrontendActionAsyncResult;
 import org.ovirt.engine.ui.uicompat.FrontendMultipleActionAsyncResult;
 import org.ovirt.engine.ui.uicompat.IFrontendActionAsyncCallback;
 import org.ovirt.engine.ui.uicompat.IFrontendMultipleActionAsyncCallback;
+
+import java.util.ArrayList;
 
 @SuppressWarnings("unused")
 public class HostGeneralModel extends EntityModel
@@ -669,6 +669,26 @@ public class HostGeneralModel extends EntityModel
                 null);
     }
 
+    private Version GetVersionFromOS(String os) {
+
+        try {
+            if (!StringHelper.isNullOrEmpty(os)) {
+
+                String[] parts = os.split("-");
+                if (parts.length == 3) {
+
+                    parts = parts[2].trim().split("\\.");
+
+                    return new Version(parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3]);
+                }
+            }
+        } catch (Exception ex) {
+            // Do nothing.
+        } finally {
+            return new Version(0, 0, 0, 0);
+        }
+    }
+
     public void Install() {
 
         if (getWindow() != null) {
@@ -682,24 +702,46 @@ public class HostGeneralModel extends EntityModel
         model.getOVirtISO().setIsAvailable(false);
         model.getRootPassword().setIsAvailable(false);
         model.getOverrideIpTables().setIsAvailable(false);
-        model.getHostVersion().setEntity(getEntity().gethost_os());
+
+        final Version hostOsVersion = GetVersionFromOS(getEntity().gethost_os());
+        model.getHostVersion().setEntity(hostOsVersion.getMajor() + "." + hostOsVersion.getMinor());
         model.getHostVersion().setIsAvailable(false);
 
         if (getEntity().getvds_type() == VDSType.oVirtNode) {
+
             AsyncDataProvider.GetoVirtISOsList(new AsyncQuery(model,
                 new INewAsyncCallback() {
                     @Override
                     public void OnSuccess(Object target, Object returnValue) {
 
                         InstallModel model = (InstallModel) target;
+
                         ArrayList<RpmVersion> isos = (ArrayList<RpmVersion>) returnValue;
+                        isos = Linq.OrderByDescending(isos, new Linq.RpmVersionComparer());
+
+                        // Filter out not compatible version (compare by major version).
+                        for (RpmVersion iso : Linq.ToList(isos)) {
+
+                            Version version = iso;
+                            if (version.getMajor() != hostOsVersion.getMajor()) {
+                                isos.remove(iso);
+                            }
+                        }
+
                         model.getOVirtISO().setItems(isos);
                         model.getOVirtISO().setSelectedItem(Linq.FirstOrDefault(isos));
                         model.getOVirtISO().setIsAvailable(true);
-                        model.getOVirtISO().setIsChangable(true);
+                        model.getOVirtISO().setIsChangable(!isos.isEmpty());
                         model.getHostVersion().setIsAvailable(true);
+
+                        if (isos.isEmpty()) {
+                            model.setMessage("There are no ISO versions that are compatible with the Host's current version.");
+                        }
+
+
+                        AddInstallCommands(model, isos.isEmpty());
                     }
-                }), getEntity().getId());
+                }), null);
         } else {
             model.getRootPassword().setIsAvailable(true);
             model.getRootPassword().setIsChangable(true);
@@ -711,17 +753,23 @@ public class HostGeneralModel extends EntityModel
                 model.getOverrideIpTables().setIsAvailable(true);
                 model.getOverrideIpTables().setEntity(true);
             }
+
+            AddInstallCommands(model, false);
+        }
+    }
+
+    private void AddInstallCommands(InstallModel model, boolean isOnlyClose) {
+
+        if (!isOnlyClose) {
+
+            UICommand command = new UICommand("OnInstall", this);
+            command.setTitle("OK");
+            command.setIsDefault(true);
+            model.getCommands().add(command);
         }
 
-        UICommand command;
-
-        command = new UICommand("OnInstall", this);
-        command.setTitle("OK");
-        command.setIsDefault(true);
-        model.getCommands().add(command);
-
-        command = new UICommand("Cancel", this);
-        command.setTitle("Cancel");
+        UICommand command = new UICommand("Cancel", this);
+        command.setTitle(isOnlyClose ? "Close" : "Cancel");
         command.setIsCancel(true);
         model.getCommands().add(command);
     }
@@ -896,10 +944,10 @@ public class HostGeneralModel extends EntityModel
                                 hostGeneralModel.setHasUpgradeAlert(true);
                                 hostGeneralModel.getInstallCommand()
                                         .setIsExecutionAllowed(vds.getstatus() != VDSStatus.Up
-                                                && vds.getstatus() != VDSStatus.Installing
-                                                && vds.getstatus() != VDSStatus.PreparingForMaintenance
-                                                && vds.getstatus() != VDSStatus.Reboot
-                                                && vds.getstatus() != VDSStatus.PendingApproval);
+                                            && vds.getstatus() != VDSStatus.Installing
+                                            && vds.getstatus() != VDSStatus.PreparingForMaintenance
+                                            && vds.getstatus() != VDSStatus.Reboot
+                                            && vds.getstatus() != VDSStatus.PendingApproval);
                                 if (!hostGeneralModel.getInstallCommand().getIsExecutionAllowed())
                                 {
                                     hostGeneralModel.getInstallCommand()
